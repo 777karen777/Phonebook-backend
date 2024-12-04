@@ -8,7 +8,7 @@ app.use(express.json())
 
 const baseUrl = '/api/persons'
 
-const persons = [
+let persons = [
     { 
       "id": "1",
       "name": "Arto Hellas", 
@@ -50,6 +50,17 @@ app.get(`${baseUrl}/:id`, (request, response) => {
   const person = persons.find(person => person.id === id)
   if(person) {
     response.json(person)
+  } else {
+    response.status(404).end()
+  }
+})
+
+app.delete(`${baseUrl}/:id`, (request, response) => {
+  const id = request.params.id;
+  const found = persons.find(p => p.id === id)
+  if(found) {
+    persons = persons.filter(person => person.id !== id)
+    response.status(202).end()
   } else {
     response.status(404).end()
   }
