@@ -37,6 +37,13 @@ app.get(baseUrl, (request, response) => {
     response.json(persons)
 })
 
+app.get('/info', (request, response) => {
+  const curentDate = new Date().toString()
+  
+  response.send(`<p>Phonebook has info for ${persons.length} people <br/> ${curentDate} </p>`)
+  // console.log(Object.keys(request))
+  // response.json(request)
+})
 
 const PORT = 3001
 app.listen(PORT, () => {
