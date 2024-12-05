@@ -80,10 +80,28 @@ const generateId = () => {
 app.post(baseUrl, (request, response) => {
 
   const body = request.body
+  let errorMessage = null
 
-  if(!body.name || !body.number) {
+  if (body.name) {
+    const foundName = persons.find(p => p.name.toLowerCase() === body.name.toLowerCase())
+    if(foundName) {
+      errorMessage = 'name must be unique'
+    }
+  } else {
+    errorMessage = "name can't be missed"    
+  }
+  
+  if(!body.number) {
+    if(errorMessage) {
+      errorMessage += "\n number can't be missed"
+    } else {
+      errorMessage = "number can't be missed"
+    }
+  }
+
+  if(errorMessage) {
     return response.status(400).json({
-      error: 'Wrong datas!'
+      error: errorMessage
     })
   }
 
