@@ -1,10 +1,34 @@
 const express = require('express')
 const cors = require('cors')
+const morgan = require('morgan')
 const app = express()
 
 app.use(cors())
 
 app.use(express.json())
+
+app.use(morgan("tiny"))
+// app.use(morgan("common"))
+// app.use(morgan("combined", {immediate: true}))
+// app.use(morgan("combined"))
+/* app.use(morgan('dev', {
+  skip: function (req, res) { return res.statusCode < 400 }
+})) */
+/* app.use(morgan(function (tokens, req, res) {
+  console.log(Object.keys(tokens))
+  return [
+    tokens.method(req, res),
+    tokens.url(req, res),
+    tokens.status(req, res),
+    tokens.res(req, res, 'content-length'), '-',
+    tokens['response-time'](req, res), 'ms'
+  ].join(' ')
+})) */
+// app.use(morgan("short"))
+// app.use(morgan("tiny"))
+
+// console.log('Avvvvailable tokens:', morgan.token());
+
 
 const baseUrl = '/api/persons'
 
