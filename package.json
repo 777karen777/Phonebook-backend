@@ -8,7 +8,6 @@
     "test": "echo \"Error: no test specified\" && exit 1",
     "build:ui": "cd C:/Users/mamre/Desktop/fullstack-exercises/part2/phonebook/ && npm run build && cp -r dist /c/Users/mamre/Desktop/Backend/Phonebook-backend",
     "deploy:full": "npm run build:ui && git add . && git commit -m uibuild && git push"
-
   },
   "author": "",
   "license": "ISC",
@@ -16,6 +15,7 @@
   "dependencies": {
     "cors": "^2.8.5",
     "express": "^4.21.1",
+    "mongoose": "^8.9.2",
     "morgan": "^1.10.0"
   },
   "devDependencies": {
