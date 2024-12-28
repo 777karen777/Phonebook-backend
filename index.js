@@ -1,6 +1,14 @@
 const express = require('express')
 const cors = require('cors')
 const morgan = require('morgan')
+const Person = require('./models/person')
+// const mongoose = require('mongoose')
+
+// const password = process.argv[2]
+
+
+
+
 const app = express()
 
 app.use(cors())
@@ -38,7 +46,7 @@ app.use(morgan(':method :url :status :res[content-length] - :response-time ms :r
 
 const baseUrl = '/api/persons'
 
-let persons = [
+/* let persons = [
     { 
       "id": "1",
       "name": "Arto Hellas", 
@@ -59,12 +67,15 @@ let persons = [
       "name": "Mary Poppendieck", 
       "number": "39-23-6423122"
     }
-]
+] */
 
 
 
 app.get(baseUrl, (request, response) => {
-    response.json(persons)
+  Person.find({}).then(people => {
+    response.json(people)
+  })
+    /* response.json(persons) */
 })
 
 app.get('/info', (request, response) => {
