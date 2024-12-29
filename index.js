@@ -107,7 +107,7 @@ app.delete(`${baseUrl}/:id`, (request, response) => {
   }
 })
 
-const generateId = () => {
+/* const generateId = () => {
   let id, found
   while(true) {
     id = Math.floor(Math.random() * 100000)
@@ -116,11 +116,48 @@ const generateId = () => {
       return (id)
     }
   }
-}
+} */
 
 app.post(baseUrl, (request, response) => {
 
   const body = request.body
+  // console.log(body)
+  // let errorMessage = null
+
+  // if (body.name) {
+  //   const foundName = persons.find(p => p.name.toLowerCase() === body.name.toLowerCase())
+  //   if(foundName) {
+  //     errorMessage = 'name must be unique'
+  //   }
+  // } else {
+  //   errorMessage = "name can't be missed"    
+  // }
+  
+  // if(!body.number) {
+  //   if(errorMessage) {
+  //     errorMessage += "\n number can't be missed"
+  //   } else {
+  //     errorMessage = "number can't be missed"
+  //   }
+  // }
+
+  // if(errorMessage) {
+  //   return response.status(400).json({
+  //     error: errorMessage
+  //   })
+  // }
+
+  const person = new Person ({
+    name: body.name,
+    number: body.number.toString()
+  })
+
+  person.save().then(savedPerson => {
+    response.json(savedPerson)
+  })
+
+
+  /* const body = request.body
   let errorMessage = null
 
   if (body.name) {
@@ -154,7 +191,7 @@ app.post(baseUrl, (request, response) => {
 
   persons = persons.concat(person)
 
-  response.json(person)
+  response.json(person) */
 } )
 
 
