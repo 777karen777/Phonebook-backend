@@ -11,7 +11,21 @@ const Person = require('./models/person')
 
 const app = express()
 
-app.use(cors())
+const errorHandler = (error, request, response, next) => {
+  console.error(error.message)
+
+  if(error.name === 'CastError') {
+    return response.status(400).send({error: 'malformated id'})
+  }
+
+  next(error)
+}
+
+const unknownEndpoint = (request, response) => {
+  response.status(404).send({error: 'unknown endpoint'})
+}
+
+// app.use(cors())
 app.use(express.static('dist'))
 
 app.use(express.json())
@@ -46,153 +60,99 @@ app.use(morgan(':method :url :status :res[content-length] - :response-time ms :r
 
 const baseUrl = '/api/persons'
 
-/* let persons = [
-    { 
-      "id": "1",
-      "name": "Arto Hellas", 
-      "number": "040-123456"
-    },
-    { 
-      "id": "2",
-      "name": "Ada Lovelace", 
-      "number": "39-44-5323523"
-    },
-    { 
-      "id": "3",
-      "name": "Dan Abramov", 
-      "number": "12-43-234345"
-    },
-    { 
-      "id": "4",
-      "name": "Mary Poppendieck", 
-      "number": "39-23-6423122"
-    }
-] */
-
-
 
 app.get(baseUrl, (request, response) => {
   Person.find({}).then(people => {
     response.json(people)
   })
-    /* response.json(persons) */
 })
 
 app.get('/info', (request, response) => {
   const curentDate = new Date().toString()
   
-  response.send(`<p>Phonebook has info for ${persons.length} people <br/> ${curentDate} </p>`)
-  // console.log(Object.keys(request))
-  // response.json(request)
+  Person.countDocuments({})
+    .then(count => {
+      response.send(`<p>Phonebook has info for ${count} people <br/> ${curentDate} </p>`)
+    })
+    .catch(error => next(error))
+  
 })
 
-app.get(`${baseUrl}/:id`, (request, response) => {
-  const id = request.params.id;
-  const person = persons.find(person => person.id === id)
-  if(person) {
-    response.json(person)
-  } else {
-    response.status(404).end()
-  }
+app.get(`${baseUrl}/:id`, (request, response, next) => {
+  Person.findById(request.params.id)
+    .then(person => {
+      if (person) {
+        response.json(person)
+      } else {
+        response.status(404).end()
+      }
+    })
+    .catch(error => {
+      next(error)
+    })
 })
 
-app.delete(`${baseUrl}/:id`, (request, response) => {
-  const id = request.params.id;
-  const found = persons.find(p => p.id === id)
-  if(found) {
-    persons = persons.filter(person => person.id !== id)
-    response.status(200).json(found)
-  } else {
-    response.status(404).end()
-  }
+app.delete(`${baseUrl}/:id`, (request, response, next) => {
+  Person.findByIdAndDelete(request.params.id)
+    .then(result => {
+      response.status(204).end()
+    })
+    .catch(error => next(error))  
 })
 
-/* const generateId = () => {
-  let id, found
-  while(true) {
-    id = Math.floor(Math.random() * 100000)
-    found = persons.find(person => person.id === id)
-    if(!found) {
-      return (id)
-    }
-  }
-} */
 
-app.post(baseUrl, (request, response) => {
+
+app.post(baseUrl, (request, response, next) => {
 
   const body = request.body
-  // console.log(body)
-  // let errorMessage = null
 
-  // if (body.name) {
-  //   const foundName = persons.find(p => p.name.toLowerCase() === body.name.toLowerCase())
-  //   if(foundName) {
-  //     errorMessage = 'name must be unique'
-  //   }
-  // } else {
-  //   errorMessage = "name can't be missed"    
-  // }
-  
-  // if(!body.number) {
-  //   if(errorMessage) {
-  //     errorMessage += "\n number can't be missed"
-  //   } else {
-  //     errorMessage = "number can't be missed"
-  //   }
-  // }
-
-  // if(errorMessage) {
-  //   return response.status(400).json({
-  //     error: errorMessage
-  //   })
-  // }
-
-  const person = new Person ({
-    name: body.name,
-    number: body.number.toString()
-  })
-
-  person.save().then(savedPerson => {
-    response.json(savedPerson)
-  })
-
-
-  /* const body = request.body
-  let errorMessage = null
-
-  if (body.name) {
-    const foundName = persons.find(p => p.name.toLowerCase() === body.name.toLowerCase())
-    if(foundName) {
-      errorMessage = 'name must be unique'
-    }
-  } else {
-    errorMessage = "name can't be missed"    
+  if (!body.name || !body.number) {
+    return response.status(400).json({error: 'Name and number are both required'})
   }
   
-  if(!body.number) {
-    if(errorMessage) {
-      errorMessage += "\n number can't be missed"
-    } else {
-      errorMessage = "number can't be missed"
-    }
-  }
-
-  if(errorMessage) {
-    return response.status(400).json({
-      error: errorMessage
+  Person.findOne({name: body.name})
+    .then(existingPerson => {
+      if (existingPerson) {
+        existingPerson.number = body.number.toString()
+        return existingPerson.save().then(updatedPerson => {
+          response.json(updatedPerson)
+        })
+      } else {
+        const person = new Person ({
+          name: body.name,
+          number: body.number.toString()
+        })
+      
+        person.save().then(savedPerson => {
+          response.json(savedPerson)
+        })
+      }
     })
-  }
+    .catch(error => {next(error)})  
+})
+
+app.put(`${baseUrl}/:id`, (request, response, next) => {
+  const body = request.body
+  const {id} = request.params
 
   const person = {
-    id: generateId().toString(),
     name: body.name,
-    number: body.number.toString()
+    number: body.number,
   }
 
-  persons = persons.concat(person)
+  if (!body.number) {
+    return response.status(400).json({error: 'Number is required'})
+  }
 
-  response.json(person) */
-} )
+  Person.findByIdAndUpdate(id, person, {new: true})
+    .then(updatedPerson => {
+      response.json(updatedPerson)
+    })
+    .catch(error => next(error))
+})
+
+app.use(unknownEndpoint)
+app.use(errorHandler)
 
 
 
