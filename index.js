@@ -150,7 +150,7 @@ app.put(`${baseUrl}/:id`, (request, response, next) => {
     return response.status(400).json({error: 'Number is required'})
   }
 
-  Person.findByIdAndUpdate(id, person, {new: true})
+  Person.findByIdAndUpdate(id, person, {new: true, runValidators: true})
     .then(updatedPerson => {
       response.json(updatedPerson)
     })
