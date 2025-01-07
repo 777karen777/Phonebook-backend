@@ -1,5 +1,5 @@
 const express = require('express')
-const cors = require('cors')
+// const cors = require('cors')
 const morgan = require('morgan')
 const Person = require('./models/person')
 // const mongoose = require('mongoose')
@@ -15,18 +15,18 @@ const errorHandler = (error, request, response, next) => {
   console.error(error.message)
 
   if(error.name === 'CastError') {
-    return response.status(400).send({error: 'malformated id'})
+    return response.status(400).send({ error: 'malformated id' })
   } else if(error.name === 'ValidationError') {
-    return response.status(400).json({error: error.message})
+    return response.status(400).json({ error: error.message })
   } /* else if(error.name === 'ValidationError') {
     return response.status(400).json({error: error.message})
-  } */ 
+  } */
 
   next(error)
 }
 
 const unknownEndpoint = (request, response) => {
-  response.status(404).send({error: 'unknown endpoint'})
+  response.status(404).send({ error: 'unknown endpoint' })
 }
 
 // app.use(cors())
@@ -71,15 +71,15 @@ app.get(baseUrl, (request, response) => {
   })
 })
 
-app.get('/info', (request, response) => {
+app.get('/info', (request, response, next) => {
   const curentDate = new Date().toString()
-  
+
   Person.countDocuments({})
     .then(count => {
       response.send(`<p>Phonebook has info for ${count} people <br/> ${curentDate} </p>`)
     })
     .catch(error => next(error))
-  
+
 })
 
 app.get(`${baseUrl}/:id`, (request, response, next) => {
@@ -98,10 +98,10 @@ app.get(`${baseUrl}/:id`, (request, response, next) => {
 
 app.delete(`${baseUrl}/:id`, (request, response, next) => {
   Person.findByIdAndDelete(request.params.id)
-    .then(result => {
+    .then(() => {
       response.status(204).end()
     })
-    .catch(error => next(error))  
+    .catch(error => next(error))
 })
 
 
@@ -111,10 +111,10 @@ app.post(baseUrl, (request, response, next) => {
   const body = request.body
 
   if (!body.name || !body.number) {
-    return response.status(400).json({error: 'Name and number are both required'})
+    return response.status(400).json({ error: 'Name and number are both required' })
   }
-  
-  Person.findOne({name: body.name})
+
+  Person.findOne({ name: body.name })
     .then(existingPerson => {
       if (existingPerson) {
         existingPerson.number = body.number.toString()
@@ -126,7 +126,7 @@ app.post(baseUrl, (request, response, next) => {
           name: body.name,
           number: body.number.toString()
         })
-      
+
         person.save()
           .then(savedPerson => {
             response.json(savedPerson)
@@ -134,12 +134,12 @@ app.post(baseUrl, (request, response, next) => {
           .catch(error => next(error))
       }
     })
-    .catch(error => {next(error)})  
+    .catch(error => {next(error)})
 })
 
 app.put(`${baseUrl}/:id`, (request, response, next) => {
   const body = request.body
-  const {id} = request.params
+  const { id } = request.params
 
   const person = {
     name: body.name,
@@ -147,10 +147,10 @@ app.put(`${baseUrl}/:id`, (request, response, next) => {
   }
 
   if (!body.number) {
-    return response.status(400).json({error: 'Number is required'})
+    return response.status(400).json({ error: 'Number is required' })
   }
 
-  Person.findByIdAndUpdate(id, person, {new: true, runValidators: true})
+  Person.findByIdAndUpdate(id, person, { new: true, runValidators: true })
     .then(updatedPerson => {
       response.json(updatedPerson)
     })
@@ -164,5 +164,5 @@ app.use(errorHandler)
 
 const PORT = process.env.PORT || 3001
 app.listen(PORT, () => {
-    console.log(`Server running on port ${PORT}`)
+  console.log(`Server running on port ${PORT}`)
 })
